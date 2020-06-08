@@ -28,33 +28,20 @@ export const materiasAprobadasByNombreAlumno = (nombreAlumno) => {
   let alumnos = basededatos.alumnos;
   let calificaciones = basededatos.calificaciones;
   let materias = basededatos.materias;
-  let idsMateriasAprobadas = [];
   let materiasAprobadas = [];
-  let idAlumno;
 
-  for(let i = 0; i < alumnos.length; i++) {
-    if(alumnos[i].nombre === nombreAlumno) {
-      idAlumno = alumnos[i].id;
-      break;
-    }
-  }
+  let alumno = alumnos.find(alumno => alumno.nombre === nombreAlumno);
 
-  if(idAlumno != undefined) {
-    for(let i = 0; i < calificaciones.length; i++) {
-      if(calificaciones[i].alumno === idAlumno && calificaciones[i].nota >= 4) {
-        idsMateriasAprobadas.push(calificaciones[i].materia);
-      }
-    }
-  
-    for(let i = 0; i < materias.length; i++) {
-      for(let idx = 0; idx < idsMateriasAprobadas.length; idx++) {
-        if(idsMateriasAprobadas[idx] === materias[i].id) {
-          materiasAprobadas.push(materias[idx]);
-        }
-      }
+  if(alumno != undefined) {
+    let listaCalificaciones = calificaciones.filter(calificacion => calificacion.nota >= 4 && calificacion.alumno === alumno.id);
+
+    if(listaCalificaciones.length > 0) {
+      listaCalificaciones.forEach(function(calificacion) {
+        materiasAprobadas.push(materias.find(materia => materia.id === calificacion.materia));
+      });
     }
   } else {
-    return idAlumno;
+    return alumno;
   }
 
   return materiasAprobadas;
@@ -101,83 +88,80 @@ export const materiasAprobadasByNombreAlumno = (nombreAlumno) => {
     }
  * @param {string} nombreUniversidad
  */
+
+const getListaProfesores = (materias) => {
+  let profesores = basededatos.profesores;
+  let auxArray = [];
+  let arrProfesores = [];
+
+  materias.forEach((materia) => {
+    auxArray.push(...materia.profesores);
+  });
+
+  let idsProfesores = Array.from(new Set(auxArray));
+
+  if(idsProfesores.length > 0) {
+    idsProfesores.forEach((idProfesor) => {
+      let profesor = profesores.find(profesor => profesor.id === idProfesor);
+      
+      if(profesor != undefined) {
+        arrProfesores.push(profesor);
+      }
+    });
+  }
+
+  return arrProfesores;
+}
+
+const getListaAlumnos = (materias) => {
+  let calificaciones = basededatos.calificaciones;
+  let alumnos = basededatos.alumnos;
+  let auxArray = [];
+  let arrAlumnos = [];
+
+  materias.forEach((materia) => {
+    let idsDeAlumnos = calificaciones.filter(calificacion => materia.id === calificacion.materia).map(calificacion => calificacion.alumno);
+
+    if(idsDeAlumnos.length > 0) {
+      auxArray.push(...idsDeAlumnos);
+    }
+  });
+  
+  let idsAlumnos = Array.from(new Set(auxArray));
+
+  idsAlumnos.forEach((idAlumno) => {
+    let alumno = alumnos.find(alumno => alumno.id === idAlumno);
+
+    if(alumno != undefined) {
+      arrAlumnos.push(alumno);
+    }
+  });
+
+  return arrAlumnos;
+}
+
 export const expandirInfoUniversidadByNombre = (nombreUniversidad) => {
   let infoUniversidad = {};
   let universidades = basededatos.universidades;
   let materias = basededatos.materias;
-  let profesores = basededatos.profesores;
-  let idsProfesores = [];
-  let calificaciones = basededatos.calificaciones;
-  let alumnos = basededatos.alumnos;
-  let idsAlumnos = [];
-  let universidad;
 
-  for(let i = 0; i < universidades.length; i++) {
-    if(universidades[i].nombre === nombreUniversidad) {
-      universidad = universidades[i];
-      break;
-    }
-  }
+  let universidad = universidades.find(universidad => universidad.nombre === nombreUniversidad);
 
   if(universidad != undefined) {
     infoUniversidad = {
       id: universidad.id,
       nombre: universidad.nombre,
-      direccion: universidad.direccion,
-      materias: [],
-      profesores:[],
-      alumnos: []
+      direccion: universidad.direccion
     }
 
     // agrego materias a infoUniversidad.materias
-    for(let i = 0; i < materias.length; i++) {
-      if(materias[i].universidad === universidad.id) {
-        if(!infoUniversidad.materias.includes(materias[i])) {
-          infoUniversidad.materias.push(materias[i]);
-        }
-      }
-    }
+    infoUniversidad.materias = materias.filter(materia => materia.universidad === infoUniversidad.id);
 
-    let auxArray1 = [];
     if(infoUniversidad.materias.length > 0) {
-      for(let i = 0; i < infoUniversidad.materias.length; i++) {
-        auxArray1.push(...infoUniversidad.materias[i].profesores);
-      }
+      // agrego profesores y alumnos
+      infoUniversidad.profesores = getListaProfesores(infoUniversidad.materias);
+      infoUniversidad.alumnos = getListaAlumnos(infoUniversidad.materias);
     }
-
-    // agrego profesores a infoUniversidad.profesores
-    idsProfesores = Array.from(new Set(auxArray1));
-    if(idsProfesores.length > 0) {
-      for(let i = 0; i < profesores.length; i++) {
-        for(let idx = 0; idx < idsProfesores.length; idx++) {
-          if(profesores[i].id === idsProfesores[idx] && !infoUniversidad.profesores.includes(profesores[i])) {
-            infoUniversidad.profesores.push(profesores[i]);
-          }
-        }
-      }
-    }
-
-    for(let i = 0; i < calificaciones.length; i++) {
-      for(let idx = 0; idx < infoUniversidad.materias.length; idx++) {
-        if(calificaciones[i].materia === infoUniversidad.materias[idx].id) {
-          if(!idsAlumnos.includes(calificaciones[i].alumno)) {
-            idsAlumnos.push(calificaciones[i].alumno);
-          }
-        }
-      }
-    }
-
-    // agrego alumnos a infoUniversidad.alumnos
-    if(idsAlumnos.length > 0) {
-      for(let i = 0; i < alumnos.length; i++) {
-        for(let idx = 0; idx < idsAlumnos.length; idx++) {
-          if(alumnos[i].id === idsAlumnos[idx] && !infoUniversidad.alumnos.includes(alumnos[i])) {
-            infoUniversidad.alumnos.push(alumnos[i]);
-          }
-        }
-      }
-    }
-
   } else {
     return universidad;
   }
@@ -190,20 +174,20 @@ export const expandirInfoUniversidadByNombre = (nombreUniversidad) => {
  * @param {array} alumnos
  */
 export const promedioDeEdad = (alumnos = null) => {
-  let promedio = 0;
+  let promedio;
+  let totalEdades = 0;
+  let totalAlumnos = 0;
 
   if(alumnos === null) {
     alumnos = basededatos.alumnos;
   }
-  let totalEdades = 0;
-  let totalAlumnos = 0;
 
-  for(let i = 0; i < alumnos.length; i++) {
-    if(Number.isInteger(alumnos[i].edad)) {
+  alumnos.forEach((alumno) => {
+    if(Number.isInteger(alumno.edad)) {
       totalAlumnos += 1;
-      totalEdades += alumnos[i].edad;
+      totalEdades += alumno.edad;
     }
-  }
+  });
 
   promedio = Number((totalEdades / totalAlumnos).toFixed(2));
 
@@ -220,24 +204,26 @@ export const alumnosConPromedioMayorA = (promedio) => {
   let calificaciones = basededatos.calificaciones;
   let mostrarAlumnos = [];
 
-  for(let i = 0; i < alumnos.length; i++) {
+  alumnos.forEach((alumno) => {
     let promedioAlumno = 0;
     let cantCalificaciones = 0;
-    for(let idx = 0; idx < calificaciones.length; idx++) {
-      if(calificaciones[idx].alumno === alumnos[i].id) {
-        if(!isNaN(Number(calificaciones[idx].nota))) {
-          promedioAlumno += calificaciones[idx].nota;
+
+    calificaciones.forEach((calificacion) => {
+      if(alumno.id === calificacion.alumno) {
+        if(!isNaN(Number(calificacion.nota))) {
+          promedioAlumno += calificacion.nota;
           cantCalificaciones += 1;
         } else {
-          console.log(`La nota ingresada para el alumno ${alumnos[i].id} en la materia ${calificaciones[idx].materia} no es un valor numérico.`);
+          console.log(`La nota ingresada para el alumno ${alumno.id} en la materia ${calificacion.materia} no es un valor numérico.`);
         }
       }
-    }
+    })
 
     if((promedioAlumno / cantCalificaciones) > promedio) {
-      mostrarAlumnos.push(alumnos[i])
+      mostrarAlumnos.push(alumno)
     }
-  }
+  });
+
   return mostrarAlumnos;
 };
 
@@ -249,13 +235,14 @@ export const materiasSinAlumnosAnotados = () => {
   let calificaciones = basededatos.calificaciones;
   let materias = basededatos.materias;
   let materiasSinAlumnos = [];
-  
-  for(let i = 0; i < materias.length; i++) {
-    let resultado = calificaciones.find(calificacion => calificacion.materia === materias[i].id);
-    if(resultado === undefined) {
-      materiasSinAlumnos.push(materias[i]);
+
+  materias.forEach((materia) => {
+    let calificacion = calificaciones.find(calificacion => calificacion.materia === materia.id);
+
+    if(calificacion === undefined) {
+      materiasSinAlumnos.push(materia);
     }
-  }
+  });
 
   return materiasSinAlumnos;
 };

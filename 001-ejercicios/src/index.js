@@ -85,7 +85,10 @@ console.log('\n------------------------------------------------------');
 console.log('Ejecutando ejercicios promedioDeEdadByUniversidadId.');
 
 const promedioByUniversidad = promedioDeEdadByUniversidadId(1);
-console.log('\nPromedio de edad en universidad con ID 1: ', promedioByUniversidad);
+console.log('\nPromedio de edad en Universidad del Comahue: ', promedioByUniversidad);
 
-const promedioByUniversidad2 = promedioDeEdadByUniversidadId(3);
-console.log('\nPromedio de edad en universidad con ID 3: ', promedioByUniversidad2);
+const promedioByUniversidad2 = promedioDeEdadByUniversidadId(2);
+console.log('\nPromedio de edad en universidad de Río Negro: ', promedioByUniversidad2);
+
+const promedioByUniversidad3 = promedioDeEdadByUniversidadId(3);
+console.log('\nPromedio de edad en universidad con ID 3: ', promedioByUniversidad3);
