@@ -89,6 +89,10 @@ export const materiasAprobadasByNombreAlumno = (nombreAlumno) => {
  * @param {string} nombreUniversidad
  */
 
+ /**
+ * Devuelve un array de profesores o un array vacío.
+ * @param {array} materias
+ */
 const getListaProfesores = (materias) => {
   let profesores = basededatos.profesores;
   let auxArray = [];
@@ -113,6 +117,10 @@ const getListaProfesores = (materias) => {
   return arrProfesores;
 }
 
+/**
+ * Devuelve un array de alumnos o un array vacío.
+ * @param {array} materias
+ */
 const getListaAlumnos = (materias) => {
   let calificaciones = basededatos.calificaciones;
   let alumnos = basededatos.alumnos;
